@@ -2,6 +2,7 @@
 
 const debug = require('debug')('electron-packager')
 const getPackageInfo = require('get-package-info')
+const { isExactVersion } = require('is-exact-version')
 const parseAuthor = require('parse-author')
 const path = require('path')
 const pify = require('pify')
@@ -38,8 +39,11 @@ function getVersion (opts, electronProp) {
   if (packageName === 'electron-prebuilt-compile') {
     // electron-prebuilt-compile cannot be resolved because `main` does not point
     // to a valid JS file.
-    const electronVersion = electronProp.pkg[depType][packageName]
-    if (!/^\d+\.\d+\.\d+/.test(electronVersion)) {
+
+    // const electronVersion = electronProp.pkg[depType][packageName]
+    const electronVersion = require('electron-prebuilt-compile/package.json').version
+    debug(`Got this version from electron-prebuilt-compile/package.json: ${electronVersion}`)
+    if (!isExactVersion(electronVersion)) {
       throw new Error('Using electron-prebuilt-compile with Electron Packager requires specifying an exact Electron version')
     }
 
