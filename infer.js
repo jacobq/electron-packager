@@ -39,9 +39,8 @@ function getVersion (opts, electronProp) {
   const packageName = splitProp[1]
   const src = electronProp.src
   if (packageName === 'electron-prebuilt-compile') {
-    // electron-prebuilt-compile cannot be resolved because `main` does not point
-    // to a valid JS file.
-    const electronVersion = electronProp.pkg[depType][packageName]
+    const electronVersion = require('electron-prebuilt-compile/package.json').version
+    debug(`electronVersion=${electronVersion} (from ${electronProp.pkg[depType][packageName]})`)
     if (!/^\d+\.\d+\.\d+/.test(electronVersion)) {
       throw new Error('Using electron-prebuilt-compile with Electron Packager requires specifying an exact Electron version')
     }
