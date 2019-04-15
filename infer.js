@@ -40,29 +40,24 @@ function getVersion (opts, electronProp) {
     // electron-prebuilt-compile cannot be resolved because `main` does not point
     // to a valid JS file.
     const electronVersion = electronProp.pkg[depType][packageName]
-    let versionRange;
     try {
-      versionRange = new semver.Range(electronVersion)
+      const versionRange = new semver.Range(electronVersion)
+      if (versionRange.intersects(new semver.Range('< 1.6.5'))) {
+        if (!/^\d+\.\d+\.\d+/.test(electronVersion)) {
+          throw new Error('Using electron-prebuilt-compile with Electron Packager requires specifying an exact Electron version')
+        }
+
+        opts.electronVersion = electronVersion
+        return Promise.resolve()
+      }
     }
     catch(e) {
       // When specifying electron(-prebuilt-compile) version as a URL (e.g. tarball or git repository)
-      // instead of a plain semver string, we look for a version number in its text.
-      // e.g. someone/fork#electron-4.1.4 or https://registry.npmjs.org/@jacobq/electron-prebuilt-compile/-/electron-prebuilt-compile-4.1.4.tgz
-      if (e.message.indexOf('Invalid comparator:') === 0) {
-        const extractedVersion = electronVersion.match(/\d+\.\d+\.\d+/)[0]
-        versionRange = new semver.Range(extractedVersion);
+      // assume that it will have it will be resolvable / have a "main" file
+      debug(`${packageName} version string is not semver compliant.`)
+      if (e.message.indexOf('Invalid comparator:') !== 0) {
+        throw e
       }
-      else {
-        throw e;
-      }
-    }
-    if (versionRange.intersects(new semver.Range('< 1.6.5'))) {
-      if (!/^\d+\.\d+\.\d+/.test(electronVersion)) {
-        throw new Error('Using electron-prebuilt-compile with Electron Packager requires specifying an exact Electron version')
-      }
-
-      opts.electronVersion = electronVersion
-      return Promise.resolve()
     }
   }
 
